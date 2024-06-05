@@ -73,3 +73,7 @@
       transform: rotate(360deg);
   }
 }
+
+.image-dialog-desc{
+  margin-top: 30px !important;
+}
