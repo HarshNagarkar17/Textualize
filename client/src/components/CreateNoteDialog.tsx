@@ -54,7 +54,7 @@ const CreateNoteDialog = () => {
         <DialogTrigger>
             <div className='border-dashed border-2 flex border-green-600 h-full rounded-lg items-center justify-center sm:flex-col hover:shadow-xl transition hover:-translate-y-1 flex-row p-4'>
                 <Plus className='w-6 h-6 text-green-600' strokeWidth={3} />
-                <h2 className='font-semibold text-green-600 sm:mt-2'>New Note book</h2>
+                <h2 className='font-semibold text-green-600 sm:mt-2'>New Blog</h2>
             </div>
         </DialogTrigger>
         <DialogContent>

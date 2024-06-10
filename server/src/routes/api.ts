@@ -8,6 +8,6 @@ apiRouter.get("/getBlogs",getBlogs);
 apiRouter.post("/blog",getBlog)
 apiRouter.post("/saveBlog",addContent)
 apiRouter.post("/completion",completeText);
-apiRouter.post("/generateImage", createImage);
+apiRouter.post("/createImage", createImage);
 
 export default apiRouter;

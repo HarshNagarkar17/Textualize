@@ -77,3 +77,8 @@
 .image-dialog-desc{
   margin-top: 30px !important;
 }
+
+.ProseMirror-focused{
+  border: none;
+  outline: none;
+}

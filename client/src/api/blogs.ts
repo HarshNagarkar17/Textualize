@@ -12,6 +12,10 @@ const blogService = {
         return response.data.data;
     },
 
+    completeBlog: async(prompt: string) => {
+        const response: AxiosResponse = await axiosInstance.post("/api/completion",{prompt});
+        return response.data;
+    },
     saveBlog: async(blogId: string, content: string) => {
         const response = await axiosInstance.post("/api/saveBlog", {
             blogId,
@@ -19,7 +23,15 @@ const blogService = {
         });
 
         return response.data;
-    } 
+    } ,
+
+    createImage:async(blogId: string, prompt: string) => {
+        const response = await axiosInstance.post("/api/createImage", {
+            blogId,
+            prompt
+        });
+        return response.data;
+    }
 }
 
 export default blogService;

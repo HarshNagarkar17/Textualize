@@ -43,8 +43,10 @@ export const createAiText = async (prompt: string) => {
 };
 
 export const generateImage = async(prompt: string) => {
+  console.log({prompt});
   const response = await fetch(
-    "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+
+    "https://api-inference.huggingface.co/models/Corcelio/mobius",
     {
       headers: { Authorization: `Bearer ${config.MODEL_API}` },
       method: "POST",
@@ -52,7 +54,9 @@ export const generateImage = async(prompt: string) => {
     }
   );
   const imageBlob = await response.blob();
+  console.log({imageBlob});
   const imageBuffer = await imageBlob.arrayBuffer();
+  console.log({imageBuffer})
   return Buffer.from(imageBuffer);
 }
 

@@ -47,7 +47,10 @@ export const completeText = async(req:Express.Request,res:Express.Response) => {
         const text = await createAiText(req.body.prompt);
         return res.status(200).json({text})
     } catch (error:any) {
-        console.log({error})
+        if(error.code === "ERR_BAD_RESPONSE")
+            return res.status(503).json({error:"We are experiencing issues connecting to the AI service. Please try again later."})
+        if(error.code === "ERR_BAD_REQUEST")
+            return res.status(400).json({error:"It looks like there was an issue with your request. Please check and try again."})
         return res.status(500).json({error:error.message});
     }
 }
@@ -57,11 +60,15 @@ export const createImage = async(req:Express.Request,res:Express.Response) => {
         const imageBuffer = await generateImage(req.body.prompt);
         const imageName = `${uuidv4()}.jpeg`;
         const imagePath = path.join(imageDir, imageName);
-
+        console.log({imageBuffer})
         fs.writeFileSync(imagePath, imageBuffer);
         const imageUrl = `http://localhost:3000/images/${imageName}`;
         return res.status(200).json({ image: imageUrl });
     } catch (error:any) {
-        return res.status(500).json({error:error.message})
+        if(error.code === "ERR_BAD_RESPONSE")
+            return res.status(503).json({error:"We are experiencing issues connecting to the AI service. Please try again later."})
+        if(error.code === "ERR_BAD_REQUEST")
+            return res.status(400).json({error:"It looks like there was an issue with your request. Please check and try again."})
+        return res.status(500).json({error:error.message});
     }
 }

@@ -8,9 +8,10 @@ import { useMutation } from "@tanstack/react-query";
 import Text from "@tiptap/extension-text";
 import Image from "@tiptap/extension-image";
 import { useDebounce } from "@/lib/useDebounce";
-import axiosInstance from "@/utils/axios";
+import { toast } from "react-hot-toast";
 import { blogService } from "@/api";
 import ImagePromptDialog from "./ImagePromptDialog";
+import { formatter } from "@/lib/formatAiCompletedText";
 
 const TipTapEditor = ({ note }: { note: any }) => {
   const [editorState, setEditorState] = useState(note?.content);
@@ -20,45 +21,55 @@ const TipTapEditor = ({ note }: { note: any }) => {
   const [openPromptDialog, setopenPromptDialog] = useState(false);
   const [prompt, setPrompt] = useState("");
 
+  const saveNote = useMutation({
+    mutationKey: ["saveBlog", note._id],
+    mutationFn: () => blogService.saveBlog(note._id, editorState),
+    onSuccess: () => {
+      console.log("Successfully updated!");
+    },
+    onError: (err) => {
+      console.log("Error in update", err);
+    }
+  });
+
+  const createImage = useMutation({
+    mutationKey: ["createImage", note._id],
+    mutationFn: (prompt: string) => blogService.createImage(note._id, prompt),
+    onSuccess: (response: any) => {
+      console.log("Image created", { response });
+      setAiImage(response.image);
+      setIsLoading(false);
+    },
+    onError: (error: any) => {
+      console.log("Error while fetching the image", { error });
+      setIsLoading(false);
+    }
+  });
+
+  const completeBlog = useMutation({
+    mutationKey: ["completeBlog", note._id],
+    mutationFn: (text: string) => blogService.completeBlog(text),
+    onSuccess: (data) => {
+      const generatedText = data.text[0].generated_text;
+      const cleanedText = formatter(generatedText, prompt);
+      setAitext(cleanedText);
+      toast("Completed blog using AI");
+    },
+    onError: (error) => {
+      console.log({ error });
+    }
+  });
+
   const customText = Text.extend({
     addKeyboardShortcuts() {
       return {
         "ctrl-q": () => {
           const prompt = this.editor.getText().split(" ").slice(-30).join(" ");
-          axiosInstance
-            .post("/api/completion", { prompt })
-            .then((response) => {
-              const generatedText = response.data.text[0].generated_text;
-              const promptWords = prompt.split(" ");
-              const generatedTextWords = generatedText.split(" ");
-              const startIndex = promptWords.length;
-              const cleanedText = generatedTextWords
-                .slice(startIndex)
-                .join(" ");
-              console.log({ cleanedText });
-              setAitext(cleanedText);
-            })
-            .catch((error) => {
-              console.log({ error });
-            });
+
+          completeBlog.mutate(prompt);
           return true;
         },
         "ctrl-e": () => {
-          // const prompt = `Create a captivating scene of a dense, tropical jungle at dawn. The jungle should be teeming with life and rich in detail. Towering trees with thick, gnarled trunks reach towards the sky, their lush green canopies forming a dense roof that filters the sunlight into golden rays piercing through the foliage. Vines hang and twist around the trees, adorned with vibrant flowers in hues of red, orange, and yellow.
-
-          // The forest floor is a chaotic tapestry of undergrowth, with ferns, moss-covered rocks, and fallen leaves. A crystal-clear stream winds through the jungle, its waters sparkling as they cascade over smooth stones, creating a soothing sound. Exotic birds with colorful plumage flit between the branches, while monkeys swing from vine to vine.
-
-          // In the background, the faint silhouette of misty mountains can be seen, adding depth to the scene. The atmosphere is alive with the sounds of wildlife, the chirping of insects, and the distant calls of unseen creatures. The overall mood should evoke a sense of adventure, wonder, and the untamed beauty of nature.`;
-
-        //   setIsLoading(true);
-          // axiosInstance.post("/api/generateImage", { prompt })
-          //     .then((response) => {
-          //         console.log(response.data);
-          //         setAiImage(response.data.image);
-          //     })
-          //     .finally(() => {
-          //         setIsLoading(false);
-          //     });
           setopenPromptDialog(true);
           return true;
         },
@@ -78,10 +89,6 @@ const TipTapEditor = ({ note }: { note: any }) => {
       setEditorState(editor.getHTML());
     },
   });
-  const saveNote = useMutation({
-    mutationKey: ["saveBlog", note._id],
-    mutationFn: () => blogService.saveBlog(note._id, editorState),
-  });
 
   const debouncedContent = useDebounce(editorState, 1000);
 
@@ -92,14 +99,7 @@ const TipTapEditor = ({ note }: { note: any }) => {
       debouncedContent === note?.content
     )
       return;
-    saveNote.mutate(undefined, {
-      onSuccess: (data) => {
-        console.log("success update!");
-      },
-      onError: (err) => {
-        console.log("error in update", err);
-      },
-    });
+    saveNote.mutate();
   }, [debouncedContent]);
 
   useEffect(() => {
@@ -108,6 +108,7 @@ const TipTapEditor = ({ note }: { note: any }) => {
     const insertTextTypewriter = async () => {
       const characters = aiText.split("");
       for (let i = 0; i < characters.length; i++) {
+        // mimicking typewriting effect
         await editor?.commands.insertContent(characters[i]);
         await new Promise((resolve) => setTimeout(resolve, 30));
       }
@@ -116,12 +117,12 @@ const TipTapEditor = ({ note }: { note: any }) => {
     insertTextTypewriter();
   }, [aiText]);
 
-  const handleImageGeneration = (e:React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();  
+  const handleImageGeneration = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {  // mimicing an api call
-        setIsLoading(false);
-    },3000)
+    setopenPromptDialog(false);
+
+    createImage.mutate(prompt);
   };
 
   useEffect(() => {

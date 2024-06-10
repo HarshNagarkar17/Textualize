@@ -17,7 +17,7 @@ interface Note {
 const DashboardPage = () => {
   const [notes, setNotes] = useState<Note[]>([]);
 
-  const { data, error, isLoading, isError } = useQuery({
+  const { data, isLoading,} = useQuery({
     queryKey: ["getBlogs"],
     queryFn: blogService.getBlogs,
   });
@@ -38,14 +38,8 @@ const DashboardPage = () => {
         <div className="max-w-7xl mx-auto p-10 pt-4">
           <div className="flex justify-between items-center md:flex-row flex-col">
             <div className="flex items-center">
-              <Link to="/">
-                <Button className="bg-green-600" size="sm">
-                  <ArrowLeft className="mr-1 w-4 h-4" />
-                  Back
-                </Button>
-              </Link>
               <div className="w-4"></div>
-              <h1 className="text-3xl font-bold text-gray-900">My Notes</h1>
+              <h1 className="text-3xl font-bold text-gray-900">My Blogs</h1>
             </div>
           </div>
 
@@ -71,14 +65,6 @@ const DashboardPage = () => {
                 {notes?.map((note) => (
                   <Link to={`/notes/${note._id}`} key={note._id}>
                     <div className="border border-stone-200 rounded-lg overflow-hidden flex flex-col hover:shadow-xl transition hover:-translate-y-1">
-                      <img
-                        src={
-                          note.imageUrl || "https://via.placeholder.com/400x200"
-                        }
-                        alt={note.name}
-                        width={400}
-                        height={200}
-                      />
                       <div className="p-4">
                         <h3 className="text-xl font-semibold text-gray-900">
                           {note.name}
